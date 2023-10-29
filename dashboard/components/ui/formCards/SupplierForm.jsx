@@ -14,8 +14,39 @@ const SupplierForm = () => {
     productTypes: Array.from({ length: 10 }, () => ""),
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    sup_name: "",
+    sup_address: "",
+    sup_email: "",
+    sup_phone: "",
+  });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setValidationErrors({ ...validationErrors, [name]: "" });
+
+    if (name === "sup_name" && !/^[A-Za-z\s]+$/.test(value)) {
+      setValidationErrors({
+        ...validationErrors,
+        sup_name: "Supplier name can only contain letters and spaces.",
+      });
+    } else if (name === "sup_address" && value.trim() === "") {
+      setValidationErrors({
+        ...validationErrors,
+        sup_address: "Supplier address is required.",
+      });
+    } else if (name === "sup_email" && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/.test(value)) {
+      setValidationErrors({
+        ...validationErrors,
+        sup_email: "Invalid email address.",
+      });
+    } else if (name === "sup_phone" && !/^\d{10}$/.test(value)) {
+      setValidationErrors({
+        ...validationErrors,
+        sup_phone: "Supplier phone number must be exactly 10 digits.",
+      });
+    }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -51,7 +82,6 @@ const SupplierForm = () => {
       });
 
       if (response.status === 201) {
-        // Data successfully posted to mongo
         setSubmissionStatus("success");
         console.log("Data saved:", response.data.supplier);
       } else {
@@ -103,7 +133,7 @@ const SupplierForm = () => {
 
   return (
     <div>
-      {submissionStatus === "success" ? ( // Conditional rendering based on submissionStatus
+      {submissionStatus === "success" ? (
         <div className="success-message">Data saved successfully!</div>
       ) : submissionStatus === "error" ? (
         <div className="error-message">Error: Data could not be saved.</div>
@@ -113,60 +143,61 @@ const SupplierForm = () => {
             Supplier Information
           </h5>
           <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              for="sup_name"
-              className="block mb-1 text-sm font-medium text-black-500"
-            >
-              Supplier name
-            </label>
-            <input
-              type="text"
-              name="sup_name"
-              id="sup_name"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={formData.sup_name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              for="sup_address"
-              className="block mb-1 text-sm font-medium text-black-500"
-            >
-              Supplier Address
-            </label>
-            <input
-              type="text"
-              name="sup_address"
-              id="sup_address"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={formData.sup_address}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              for="sup_email"
-              className="block mb-1 text-sm font-medium text-black-500"
-            >
-              Supplier E-Mail
-            </label>
-            <input
-              type="email"
-              name="sup_email"
-              id="sup_email"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={formData.sup_email}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            
+            <div>
+              <label
+                htmlFor="sup_name"
+                className="block mb-1 text-sm font-medium text-black-500"
+              >
+                Supplier name
+              </label>
+              <input
+                type="text"
+                name="sup_name"
+                id="sup_name"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={formData.sup_name}
+                onChange={handleInputChange}
+                required
+              />
+              <p className="text-red-500">{validationErrors.sup_name}</p>
+            </div>
+            <div>
+              <label
+                htmlFor="sup_address"
+                className="block mb-1 text-sm font-medium text-black-500"
+              >
+                Supplier Address
+              </label>
+              <input
+                type="text"
+                name="sup_address"
+                id="sup_address"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={formData.sup_address}
+                onChange={handleInputChange}
+                required
+              />
+              <p className="text-red-500">{validationErrors.sup_address}</p>
+            </div>
+            <div>
+              <label
+                htmlFor="sup_email"
+                className="block mb-1 text-sm font-medium text-black-500"
+              >
+                Supplier E-Mail
+              </label>
+              <input
+                type="email"
+                name="sup_email"
+                id="sup_email"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={formData.sup_email}
+                onChange={handleInputChange}
+                required
+              />
+              <p className="text-red-500">{validationErrors.sup_email}</p>
+            </div>
+            <div>
               <label
                 htmlFor="sup_phone"
                 className="block text-gray-700 text-sm font-bold mb-2"
@@ -182,10 +213,9 @@ const SupplierForm = () => {
                 onChange={handleInputChange}
                 required
               />
+              <p className="text-red-500">{validationErrors.sup_phone}</p>
             </div>
-            
           </div>
-
           <div className="mb-6">
             <label
               htmlFor="productTypesCount"
@@ -216,7 +246,6 @@ const SupplierForm = () => {
           >
             Save
           </button>
-          
         </form>
       )}
     </div>

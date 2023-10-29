@@ -8,10 +8,13 @@ import SupplierForm from "@/components/ui/formCards/SupplierForm";
 import { FaPeopleRoof, FaPenToSquare } from "react-icons/fa6";
 import { fetchSuppliers } from "./api/supApi.js";
 import SupplierUpdate from "@/components/ui/updateFormCards/SupplierUpdate";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 const Suppliers = () => {
-  const [selectedTab, setSelectedTab] = useState("Suppliers"); // Default selected tab
+  const [selectedTab, setSelectedTab] = useState("Suppliers");
   const [suppliers, setSuppliers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const tabs = [
     { tab: "Suppliers", icon: <FaBoxOpen /> },
@@ -21,11 +24,10 @@ const Suppliers = () => {
 
   useEffect(() => {
     if (selectedTab === "Suppliers") {
-      // Fetch suppliers data when the "Suppliers" tab is selected
       async function fetchSupplierData() {
         try {
-          const supplierData = await fetchSuppliers(); // Fetch the 'supplier' array
-          setSuppliers(supplierData); // Set 'suppliers' with the 'supplier' array
+          const supplierData = await fetchSuppliers();
+          setSuppliers(supplierData);
         } catch (error) {
           console.error("Error fetching data:", error);
         }
@@ -45,19 +47,41 @@ const Suppliers = () => {
       );
 
       if (response.ok) {
-        // Remove the deleted supplier from the state
         setSuppliers((prevSuppliers) =>
           prevSuppliers.filter(
             (supplierItem) => supplierItem.sup_phone !== supPhone
           )
         );
       } else {
-        // Handle error response if needed
         console.error("Error deleting supplier:", response.statusText);
       }
     } catch (error) {
       console.error("Error deleting supplier:", error);
     }
+  };
+
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    supplier.sup_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Generate reports
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const tableRows = filteredSuppliers.map((supplier) => [
+      supplier.sup_name,
+      supplier.sup_phone,
+      supplier.sup_email,
+      supplier.sup_address,
+    ]);
+    doc.autoTable({
+      head: [["Name", "Phone Number", "E-Mail", "Address"]],
+      body: tableRows,
+    });
+    doc.save("suppliers_report.pdf");
   };
 
   return (
@@ -73,6 +97,22 @@ const Suppliers = () => {
       <div className="p-4">
         {selectedTab === "Suppliers" && (
           <div className="w-full m-auto p-4 border rounded-lg bg-white overflow-y-auto">
+            <div className="flex flex-wrap items-center mb-4">
+              <input
+                type="text"
+                placeholder="Search by supplier name"
+                value={searchTerm}
+                onChange={handleSearch}
+                className="border rounded-lg p-2 flex-1"
+              />
+              <button
+                onClick={generatePDF}
+                className="px-4 py-2 ml-4 text-white bg-green-600 hover:bg-green-800 rounded-lg transition duration-300 ease-in-out"
+              >
+                Download Report
+              </button>
+            </div>
+
             <div className="my-3 p-2 grid md:grid-cols-4 sm:grid-cols-3 grid-cols-2 items-center justify-between cursor-pointer">
               <span className="font-bold">Name</span>
               <span className="sm:text-left text-right font-bold">
@@ -81,9 +121,10 @@ const Suppliers = () => {
               <span className="hidden md:grid font-bold">E-Mail</span>
               <span className="hidden sm:grid font-bold">Address</span>
             </div>
-            {Array.isArray(suppliers) && suppliers.length > 0 ? (
+            {Array.isArray(filteredSuppliers) &&
+            filteredSuppliers.length > 0 ? (
               <ul>
-                {suppliers.map((supplierItem, id) => (
+                {filteredSuppliers.map((supplierItem, id) => (
                   <li
                     key={id}
                     className="bg-gray-50 hover:bg-gray-100 rounded-lg my-3 p-2 grid md:grid-cols-4 sm:grid-cols-3 grid-cols-2 items-center justify-between cursor-pointer"
@@ -142,10 +183,11 @@ const Suppliers = () => {
                 ))}
               </ul>
             ) : (
-              <p>No suppliers data available.</p>
+              <p>No matching suppliers found.</p>
             )}
           </div>
         )}
+
         {selectedTab === "Add Suppliers" && (
           <div className="w-full m-auto p-4 border rounded-lg bg-white overflow-y-auto">
             <SupplierForm />

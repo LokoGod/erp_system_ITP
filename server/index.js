@@ -45,6 +45,7 @@ app.use("/api/v1/job", jobRouter);
 app.use('/api/v1/employee', employeeRouter);
 app.use('/api/v1/leave', leaveRouter);
 app.use('/api/v1/supProd', supProdRouter)
+app.use('/api/v1/supplier/genRep', supplierRouter)
 
 // Custom error handlers
 app.use(notFound);

@@ -53,10 +53,56 @@ const deleteSupplier = asyncWrapper(async (req, res) => {
   res.status(200).json({ supplier });
 });
 
+const generateReport = asyncWrapper(async (req, res, next) => {
+  try {
+    const suppliers = await Supplier.find({}).populate('offeredProductTypes');
+    const puppeteer = require('puppeteer');
+
+    const generatePDFReport = async (data) => {
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      
+      const htmlContent = `
+        <html>
+          <body>
+            <h1>Supplier Report</h1>
+            <table>
+              <tr>
+                <th>Supplier Name</th>
+                <th>Offered Product Types</th>
+              </tr>
+              ${data.map(supplier => `
+                <tr>
+                  <td>${supplier.sup_name}</td>
+                  <td>${supplier.offeredProductTypes.map(productType => productType.name).join(', ')}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </body>
+        </html>
+      `;
+
+      await page.setContent(htmlContent);
+      await page.pdf({ path: 'supplier_report.pdf', format: 'A4' });
+
+      await browser.close();
+    };
+
+    await generatePDFReport(suppliers);
+
+    res.status(200).send('Report generated successfully');
+  } catch (error) {
+    return next(createCustomError("Error generating report", 500));
+  }
+});
+
+
+
 export {
   getAllSupplier,
   createSupplier,
   getSupplier,
   updateSupplier,
   deleteSupplier,
+  generateReport,
 };

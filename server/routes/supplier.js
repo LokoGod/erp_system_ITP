@@ -7,6 +7,7 @@ import {
   getSupplier,
   updateSupplier,
   deleteSupplier,
+  generateReport,
 } from "../controllers/supplier.js";
 
 supplierRouter.route("/").get(getAllSupplier).post(createSupplier);
@@ -15,5 +16,6 @@ supplierRouter
   .get(getSupplier)
   .patch(updateSupplier)
   .delete(deleteSupplier);
+supplierRouter.route("/genRep").post(generateReport)
 
 export { supplierRouter };
